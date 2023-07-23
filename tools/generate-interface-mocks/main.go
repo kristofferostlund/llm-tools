@@ -12,10 +12,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kristofferostlund/llm-tools/prompts"
+	"github.com/kristofferostlund/llm-tools/pkg/relative"
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/sync/errgroup"
 )
+
+const generateInterfacePromptPath = "./prompt.generate-go-mock-implementations.md"
 
 var (
 	packageName   = flag.String("package", "", "the package name to generate mocks for")
@@ -76,7 +78,7 @@ func main() {
 
 	// It gets creative with the output format when the temperature is higher.
 	if err := runGenerator(ctx, client, cfg); err != nil {
-		log.Fatalf("running generator")
+		log.Fatalf("running generator: %v", err)
 	}
 }
 
@@ -86,39 +88,17 @@ func runGenerator(ctx context.Context, client *openai.Client, cfg Config) error 
 		return fmt.Errorf("reading file: %w", err)
 	}
 
-	generationSystemPrompt, err := prompts.Get(ctx, prompts.GolangInterfaceMockGenerator)
+	prompt, err := relative.FileContent(ctx, generateInterfacePromptPath)
 	if err != nil {
-		return fmt.Errorf("loading prompts: %w", err)
+		return fmt.Errorf("loading prompt: %w", err)
 	}
-
-	// res, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-	// 	Model: cfg.model,
-	// 	Messages: []openai.ChatCompletionMessage{
-	// 		{
-	// 			Role:    openai.ChatMessageRoleSystem,
-	// 			Content: generationSystemPrompt,
-	// 		},
-	// 		{
-	// 			Role:    openai.ChatMessageRoleUser,
-	// 			Content: cfg.packageName,
-	// 		},
-	// 		{
-	// 			Role:    openai.ChatMessageRoleUser,
-	// 			Content: string(interfaceFileContent),
-	// 		},
-	// 	},
-	// 	Temperature: 0,
-	// })
-	// if err != nil {
-	// 	return fmt.Errorf("generating completion: %w", err)
-	// }
 
 	stream, err := client.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model: cfg.model,
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: generationSystemPrompt,
+				Content: prompt,
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
@@ -130,7 +110,7 @@ func runGenerator(ctx context.Context, client *openai.Client, cfg Config) error 
 			},
 		},
 		Stream:      true,
-		Temperature: 0,
+		Temperature: 0, // No creativity seems to be good.
 	})
 	if err != nil {
 		return fmt.Errorf("generating completion: %w", err)
@@ -204,6 +184,7 @@ func parseResult(ctx context.Context, reader io.Reader, writerFunc func(ctx cont
 			if i < 0 {
 				return fmt.Errorf("unexpected end of block")
 			}
+
 			if err := writerFunc(ctx, parsed[i]); err != nil {
 				return fmt.Errorf("writing: %w", err)
 			}
