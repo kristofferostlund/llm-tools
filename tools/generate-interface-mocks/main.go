@@ -12,12 +12,17 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kristofferostlund/llm-tools/pkg/relative"
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/kristofferostlund/llm-tools/pkg/relative"
 )
 
-const generateInterfacePromptPath = "./prompt.generate-go-mock-implementations.md"
+const (
+	mainPrompt       = "./prompts/generate-go-mock-implementations.md"
+	singleShotInput  = "./prompts/single-shot.example-input.md"
+	singleShotOutput = "./prompts/single-shot.example-output.md"
+)
 
 var (
 	packageName   = flag.String("package", "", "the package name to generate mocks for")
@@ -88,7 +93,7 @@ func runGenerator(ctx context.Context, client *openai.Client, cfg Config) error 
 		return fmt.Errorf("reading file: %w", err)
 	}
 
-	prompt, err := relative.FileContent(ctx, generateInterfacePromptPath)
+	prompts, err := relative.Files(ctx, mainPrompt, singleShotInput, singleShotOutput)
 	if err != nil {
 		return fmt.Errorf("loading prompt: %w", err)
 	}
@@ -98,15 +103,19 @@ func runGenerator(ctx context.Context, client *openai.Client, cfg Config) error 
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
-				Content: prompt,
+				Content: prompts[mainPrompt],
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
-				Content: cfg.packageName,
+				Content: prompts[singleShotInput],
+			},
+			{
+				Role:    openai.ChatMessageRoleAssistant,
+				Content: prompts[singleShotOutput],
 			},
 			{
 				Role:    openai.ChatMessageRoleUser,
-				Content: string(interfaceFileContent),
+				Content: fmt.Sprintf("%s\n\n%s", cfg.packageName, string(interfaceFileContent)),
 			},
 		},
 		Stream:      true,

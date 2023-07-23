@@ -18,8 +18,24 @@ func filepath(relPath string, depth int) string {
 	return path.Join(dir, relPath)
 }
 
+func Files(ctx context.Context, relPaths ...string) (map[string]string, error) {
+	files := make(map[string]string)
+	for _, relPath := range relPaths {
+		file, err := readFile(ctx, filepath(relPath, 2))
+		if err != nil {
+			return nil, fmt.Errorf("getting file: %w", err)
+		}
+		files[relPath] = file
+	}
+	return files, nil
+}
+
 func FileContent(ctx context.Context, relPath string) (string, error) {
-	b, err := os.ReadFile(filepath(relPath, 2))
+	return readFile(ctx, filepath(relPath, 2))
+}
+
+func readFile(ctx context.Context, absPath string) (string, error) {
+	b, err := os.ReadFile(absPath)
 	if err != nil {
 		return "", fmt.Errorf("reading file: %w", err)
 	}
