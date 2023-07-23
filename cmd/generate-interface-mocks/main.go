@@ -172,24 +172,21 @@ func runGenerator(ctx context.Context, client *openai.Client, cfg Config) error 
 }
 
 func parseResult(ctx context.Context, reader io.Reader, writerFunc func(ctx context.Context, parsed ParsedInterface) error) error {
-	var parsed []ParsedInterface
-
 	// Template:
 	// filepath: `name of the file`
 	// ```go
 	// mock implementation
 	// ```
 
+	var parsed []ParsedInterface
 	insideBlock := false
 
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		i := len(parsed) - 1
-
 		debugf("parsing line: %s", line)
 
+		i := len(parsed) - 1
 		switch {
 		case strings.HasPrefix(line, "filepath"):
 			// New file
