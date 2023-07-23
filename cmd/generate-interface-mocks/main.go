@@ -12,7 +12,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kristofferostlund/openai-chatgpt-playground/prompts"
+	"github.com/kristofferostlund/llm-tools/prompts"
 	"github.com/sashabaranov/go-openai"
 	"golang.org/x/sync/errgroup"
 )

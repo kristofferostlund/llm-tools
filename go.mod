@@ -1,4 +1,4 @@
-module github.com/kristofferostlund/openai-chatgpt-playground
+module github.com/kristofferostlund/llm-tools
 
 go 1.20
 

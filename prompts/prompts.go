@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	relative "github.com/kristofferostlund/openai-chatgpt-playground/pkg"
+	relative "github.com/kristofferostlund/llm-tools/pkg"
 )
 
 const GolangInterfaceMockGenerator = "golang-interface-mock-generation.md"
