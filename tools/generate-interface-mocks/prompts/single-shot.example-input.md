@@ -11,3 +11,5 @@ type UserProvider interface {
 type Reader interface {
 	Read(p []byte) (n int, err error)
 }
+
+type MapperFunc(ctx context.Context, item Item) (MappedItem, error)
