@@ -7,26 +7,35 @@ This tools generates Golang interfaces using [this prompt](./prompts/generate-go
 It currently requires `OPENAI_API_KEY` to be set in the environment.
 
 ```sh
-# with-dotenv .env go run tools/generate-interface-mocks/*.go -h
-Usage of tools/generate-interface-mocks/main.go
-  -debug
-        enable debug mode
-  -interface-file string
-        filepath of file to generate mocks for
-  -model string
-        the GhatGPT model to use for prompts (default "gpt-3.5-turbo")
-  -output-folder string
-        folder to output generated mocks to
-  -package string
-        the package name to generate mocks for
+# llm-tools generate-interface-mocks -h
+NAME:
+   llm-tools generate-interface-mocks - Generates mock implementations for Go interfaces
+
+USAGE:
+   llm-tools generate-interface-mocks [command options] [arguments...]
+
+OPTIONS:
+   --package value         the package name to generate mocks for
+   --interface-file value  filepath of file to generate mocks for
+   --output-folder value   folder to output generated mocks to
+   --model value           GhatGPT model to use for prompts. gpt-3.5-turbo seems more than enough. (default: "gpt-3.5-turbo")
+   --openai-api-key value  OpenAI API key, will read from environment variables or from config file [$OPENAI_API_KEY]
+   --help, -h              show help
+
 ```
 
 Example:
 
 ```sh
-OPENAI_API_KEY=sk-... go run tools/generate-interface-mocks/*.go \
-  -package=github.com/instabox/some-app/domain \
-  -interface-file=/home/kristoffer/dev/some-app/domain/interfaces.go
+# Set your openapi API key once
+llm-tools -debug config set --openai-api-key sk-...
+
+# Generate mock implementations
+llm-tools generate-interface-mocks \
+   -package=github.com/kristofferostlund/some-app/domain \
+   -interface-file=/home/kristoffer/dev/some-app/domain/interfaces.go \
+   -output-folder=/home/kristoffer/dev/some-app/domain/mock
+
 ```
 
 ## Prompting techniques
